@@ -1,9 +1,11 @@
-package main
+package game
 
 import (
 	"bufio"
 	"fmt"
 	"math/rand"
+	"mygame/pkg/constants"
+	"mygame/pkg/word"
 	"os"
 	"strings"
 	"time"
@@ -12,7 +14,7 @@ import (
 
 type Game struct {
 	dictionaryFile string
-	attempts       []*Word
+	attempts       []*word.Word
 }
 
 // NewGame создает новую игру и загружает словарь.
@@ -27,8 +29,8 @@ func (g *Game) Start() {
 	randomWord := g.getRandomWord()
 
 	fmt.Println("\033[1;35mПриветствую в Wordly! Попробуйте отгадать загаданное слово.\033")
-	for attemptsCount < AttemptsNumber {
-		fmt.Printf("\033[1;34mПопытка %d из %d\n", attemptsCount+1, AttemptsNumber)
+	for attemptsCount < constants.AttemptsNumber {
+		fmt.Printf("\033[1;34mПопытка %d из %d\n", attemptsCount+1, constants.AttemptsNumber)
 		fmt.Print("\033[1;37mВведите слово: ")
 		reader := bufio.NewReader(os.Stdin)
 		input, _ := reader.ReadString('\n')
@@ -36,23 +38,23 @@ func (g *Game) Start() {
 		fmt.Print("\033[H\033[2J")
 
 		if !g.isWordValid(input) {
-			fmt.Printf("\033[1;31mСлово '%s' не найдено в словаре или не соответствует длине в %d букв!\033\n", input, WordLength)
+			fmt.Printf("\033[1;31mСлово '%s' не найдено в словаре или не соответствует длине в %d букв!\033\n", input, constants.WordLength)
 			g.printAttempts()
 			continue
 		}
 
-		current := NewWord(input)
-		g.compare(current, NewWord(randomWord))
+		current := word.NewWord(input)
+		g.compare(current, word.NewWord(randomWord))
 		g.attempts = append(g.attempts, current) // Сохранение попытки
 		g.printAttempts()                        // Вывод всех попыток
 
-		if current.Equals(NewWord(randomWord)) {
+		if current.Equals(word.NewWord(randomWord)) {
 			fmt.Printf("\033[1;32mПоздравляем, вы отгадали слово: %s\033\n", randomWord)
 			break
 		}
 
 		attemptsCount++
-		if attemptsCount == AttemptsNumber {
+		if attemptsCount == constants.AttemptsNumber {
 			fmt.Printf("\033[1;31mСлово не угадано. Загаданное слово было: %s\033\n", randomWord)
 		}
 	}
@@ -85,7 +87,7 @@ func (g *Game) getRandomWord() string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		word := scanner.Text()
-		if utf8.RuneCountInString(word) == WordLength {
+		if utf8.RuneCountInString(word) == constants.WordLength {
 			words = append(words, word)
 		}
 	}
@@ -107,23 +109,23 @@ func (g *Game) printAttempts() {
 }
 
 // compare сравнивает текущее слово с правильным и изменяет цвет букв.
-func (g *Game) compare(current, correct *Word) {
+func (g *Game) compare(current, correct *word.Word) {
 	usedIndices := make(map[int]bool) // Для отслеживания использованных индексов правильного слова
 
 	// Сначала отмечаем зелёные буквы
-	for i, letter := range current.letters {
-		if letter.char == correct.letters[i].char {
-			current.ChangeColor(i, green)
+	for i, letter := range current.Letters {
+		if letter.Char == correct.Letters[i].Char {
+			current.ChangeColor(i, constants.Green)
 			usedIndices[i] = true // Отмечаем индекс как использованный
 		}
 	}
 
 	// Затем отмечаем жёлтые буквы
-	for i, letter := range current.letters {
-		if current.letters[i].color == gray { // Проверяем, что буква ещё не зелёная
-			for j, correctLetter := range correct.letters {
-				if letter.char == correctLetter.char && !usedIndices[j] {
-					current.ChangeColor(i, yellow)
+	for i, letter := range current.Letters {
+		if current.Letters[i].Color == constants.Gray { // Проверяем, что буква ещё не зелёная
+			for j, correctLetter := range correct.Letters {
+				if letter.Char == correctLetter.Char && !usedIndices[j] {
+					current.ChangeColor(i, constants.Yellow)
 					usedIndices[j] = true // Отмечаем индекс как использованный
 					break                 // Прерываем цикл после первой подсветки
 				}

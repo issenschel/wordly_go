@@ -1,4 +1,4 @@
-package main
+package letter
 
 import (
 	"fmt"
@@ -6,16 +6,16 @@ import (
 
 // Letter представляет собой структуру для буквы со стилем отображения.
 type Letter struct {
-	char  rune
-	color string
+	Char  rune
+	Color string
 }
 
 // NewLetter создает новую букву с заданным символом и цветом.
 func NewLetter(char rune, color string) *Letter {
-	return &Letter{char: char, color: color}
+	return &Letter{Char: char, Color: color}
 }
 
 // String возвращает строковое представление буквы с учетом цвета.
 func (l *Letter) String() string {
-	return fmt.Sprintf(l.color, string(l.char))
+	return fmt.Sprintf(l.Color, string(l.Char))
 }

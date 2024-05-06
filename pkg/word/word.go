@@ -1,17 +1,19 @@
-package main
+package word
 
 import (
 	"fmt"
+	"mygame/pkg/constants"
+	"mygame/pkg/letter"
 )
 
 type Word struct {
-	letters []*Letter
+	Letters []*letter.Letter
 }
 
 // Equals проверяет, совпадает ли слово с другим словом.
 func (w *Word) Equals(other *Word) bool {
-	for i, letter := range w.letters {
-		if letter.char != other.letters[i].char {
+	for i, letter := range w.Letters {
+		if letter.Char != other.Letters[i].Char {
 			return false
 		}
 	}
@@ -20,12 +22,12 @@ func (w *Word) Equals(other *Word) bool {
 
 // ChangeColor изменяет цвет буквы в слове по индексу.
 func (w *Word) ChangeColor(index int, color string) {
-	w.letters[index].color = color
+	w.Letters[index].Color = color
 }
 
 // Print выводит слово в консоль.
 func (w *Word) Print() {
-	for _, letter := range w.letters {
+	for _, letter := range w.Letters {
 		fmt.Print(letter)
 	}
 	fmt.Println()
@@ -34,7 +36,7 @@ func (w *Word) Print() {
 func NewWord(word string) *Word {
 	w := &Word{}
 	for _, char := range word {
-		w.letters = append(w.letters, NewLetter(char, gray))
+		w.Letters = append(w.Letters, letter.NewLetter(char, constants.Gray))
 	}
 	return w
 }
