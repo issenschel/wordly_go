@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 )
 
+// Ну а что тут объяснять?
 type Game struct {
 	dictionaryFile string
 	attempts       []*word.Word
@@ -45,8 +46,8 @@ func (g *Game) Start() {
 
 		current := word.NewWord(input)
 		g.compare(current, word.NewWord(randomWord))
-		g.attempts = append(g.attempts, current) // Сохранение попытки
-		g.printAttempts()                        // Вывод всех попыток
+		g.attempts = append(g.attempts, current)
+		g.printAttempts()
 
 		if current.Equals(word.NewWord(randomWord)) {
 			fmt.Printf("\033[1;32mПоздравляем, вы отгадали слово: %s\033\n", randomWord)
@@ -60,6 +61,7 @@ func (g *Game) Start() {
 	}
 }
 
+// Проверяем на норм слово
 func (g *Game) isWordValid(word string) bool {
 	file, err := os.Open(g.dictionaryFile)
 	if err != nil {
@@ -76,6 +78,7 @@ func (g *Game) isWordValid(word string) bool {
 	return false
 }
 
+// Жёсткий рандомайзер слов
 func (g *Game) getRandomWord() string {
 	words := []string{}
 	file, err := os.Open(g.dictionaryFile)
@@ -100,6 +103,7 @@ func (g *Game) getRandomWord() string {
 	return words[rand.Intn(len(words))]
 }
 
+// Выводим попытки
 func (g *Game) printAttempts() {
 	fmt.Println("\033[1;36mВаши попытки:\033")
 	for _, attempt := range g.attempts {
@@ -116,18 +120,18 @@ func (g *Game) compare(current, correct *word.Word) {
 	for i, letter := range current.Letters {
 		if letter.Char == correct.Letters[i].Char {
 			current.ChangeColor(i, constants.Green)
-			usedIndices[i] = true // Отмечаем индекс как использованный
+			usedIndices[i] = true
 		}
 	}
 
 	// Затем отмечаем жёлтые буквы
 	for i, letter := range current.Letters {
-		if current.Letters[i].Color == constants.Gray { // Проверяем, что буква ещё не зелёная
+		if current.Letters[i].Color == constants.Gray {
 			for j, correctLetter := range correct.Letters {
 				if letter.Char == correctLetter.Char && !usedIndices[j] {
 					current.ChangeColor(i, constants.Yellow)
-					usedIndices[j] = true // Отмечаем индекс как использованный
-					break                 // Прерываем цикл после первой подсветки
+					usedIndices[j] = true
+					break
 				}
 			}
 		}
