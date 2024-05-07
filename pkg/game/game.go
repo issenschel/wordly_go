@@ -8,8 +8,6 @@ import (
 	"mygame/pkg/word"
 	"os"
 	"strings"
-	"time"
-	"unicode/utf8"
 )
 
 // Ну а что тут объяснять?
@@ -80,27 +78,22 @@ func (g *Game) isWordValid(word string) bool {
 
 // Жёсткий рандомайзер слов
 func (g *Game) getRandomWord() string {
-	words := []string{}
+	var currentWord string
+
 	file, err := os.Open(g.dictionaryFile)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
+	randomIndex := rand.Intn(constants.WordQuantity)
+
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		word := scanner.Text()
-		if utf8.RuneCountInString(word) == constants.WordLength {
-			words = append(words, word)
-		}
+	for i := 0; i <= randomIndex; i++ {
+		scanner.Scan()
+		currentWord = scanner.Text()
 	}
-
-	if len(words) == 0 {
-		panic("Словарь пуст")
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	return words[rand.Intn(len(words))]
+	return currentWord
 }
 
 // Выводим попытки
@@ -114,7 +107,7 @@ func (g *Game) printAttempts() {
 
 // compare сравнивает текущее слово с правильным и изменяет цвет букв.
 func (g *Game) compare(current, correct *word.Word) {
-	usedIndices := make(map[int]bool) // Для отслеживания использованных индексов правильного слова
+	usedIndices := make(map[int]bool)
 
 	// Сначала отмечаем зелёные буквы
 	for i, letter := range current.Letters {

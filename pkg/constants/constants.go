@@ -4,6 +4,7 @@ package constants
 const (
 	WordLength     = 5
 	AttemptsNumber = 6
+	WordQuantity   = 4154
 )
 
 // код для цвета
