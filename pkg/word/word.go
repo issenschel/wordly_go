@@ -33,6 +33,7 @@ func (w *Word) Print() {
 	fmt.Println()
 }
 
+// Делаем каждую букву серой
 func NewWord(word string) *Word {
 	w := &Word{}
 	for _, char := range word {
