@@ -5,10 +5,12 @@ import (
 	"math/rand"
 	"mygame/pkg/constants"
 	"os"
+	"time"
 )
 
-func IsWordValid(word, dictionaryFile string) bool {
-	file, err := os.Open(dictionaryFile)
+// IsWordValid проверяет, существует ли слово в словаре.
+func IsWordValid(word string) bool {
+	file, err := os.Open("dictionary.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -23,22 +25,23 @@ func IsWordValid(word, dictionaryFile string) bool {
 	return false
 }
 
-// Жёсткий рандомайзер слов
-func GetRandomWord(dictionaryFile string) string {
-	var currentWord string
-
-	file, err := os.Open(dictionaryFile)
+// GetRandomWord возвращает случайное слово из словаря.
+func GetRandomWord() string {
+	file, err := os.Open("dictionary.txt")
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
+	rand.Seed(time.Now().UnixNano())
 	randomIndex := rand.Intn(constants.WordQuantity)
 
 	scanner := bufio.NewScanner(file)
 	for i := 0; i <= randomIndex; i++ {
 		scanner.Scan()
-		currentWord = scanner.Text()
+		if i == randomIndex {
+			return scanner.Text()
+		}
 	}
-	return currentWord
+	return ""
 }

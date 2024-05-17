@@ -1,39 +1,31 @@
 package word
 
 import (
-	"fmt"
 	"mygame/pkg/constants"
 	"mygame/pkg/letter"
 )
 
+// Word структура для слова
 type Word struct {
 	Letters []*letter.Letter
 }
 
-// Equals проверяет, совпадает ли слово с другим словом.
-func (w *Word) Equals(other *Word) bool {
+// Equals проверяет, совпадает ли слово с другим словом
+func (w *Word) Equals(other string) bool {
 	for i, letter := range w.Letters {
-		if letter.Char != other.Letters[i].Char {
+		if letter.Char != []rune(other)[i] {
 			return false
 		}
 	}
 	return true
 }
 
-// ChangeColor изменяет цвет буквы в слове по индексу.
+// ChangeColor изменяет цвет буквы в слове по индексу
 func (w *Word) ChangeColor(index int, color string) {
 	w.Letters[index].Color = color
 }
 
-// Print выводит слово в консоль.
-func (w *Word) Print() {
-	for _, letter := range w.Letters {
-		fmt.Print(letter)
-	}
-	fmt.Println()
-}
-
-// Делаем каждую букву серой
+// NewWord создает новое слово
 func NewWord(word string) *Word {
 	w := &Word{}
 	for _, char := range word {

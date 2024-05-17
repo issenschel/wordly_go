@@ -1,10 +1,16 @@
 package main
 
-import "mygame/pkg/game"
+import (
+	"log"
+	"mygame/pkg/game"
+	"net/http"
+)
 
 func main() {
-	game := game.NewGame("dictionary.txt")
-	game.Start()
+	// Запуск сервера
+	http.HandleFunc("/", game.Handler)
+	log.Println("Сервер запущен на порту :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 /*

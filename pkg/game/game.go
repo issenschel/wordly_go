@@ -1,86 +1,90 @@
 package game
 
 import (
-	"bufio"
 	"fmt"
 	"mygame/pkg/constants"
 	"mygame/pkg/persistence"
 	"mygame/pkg/word"
-	"os"
-	"strings"
+	"net/http"
+	"text/template"
 )
 
 // Ну а что тут объяснять?
-type Game struct {
-	dictionaryFile string
-	attempts       []*word.Word
+var (
+	attempts  []*word.Word
+	rightWord string
+)
+
+type PageData struct {
+	Message  string
+	Attempts []*word.Word
 }
 
-// NewGame создает новую игру и загружает словарь.
-func NewGame(dictionaryFile string) *Game {
-	return &Game{dictionaryFile: dictionaryFile}
-}
+// Handler обрабатывает запросы к игре.
+func Handler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		// Отправка HTML формы при GET запросе
+		tmpl := template.Must(template.ParseFiles("index.html"))
+		data := PageData{Message: "", Attempts: GetAttempts()}
+		tmpl.Execute(w, data)
+		rightWord = persistence.GetRandomWord()
+	} else if r.Method == "POST" {
+		// Обработка POST запроса
+		r.ParseForm()
+		word2 := r.FormValue("word")
 
-// Start запускает игру.
-func (g *Game) Start() {
-	fmt.Print("\033[H\033[2J")
-	attemptsCount := 0
-	randomWord := persistence.GetRandomWord(g.dictionaryFile)
+		message := ""
+		if word2 == "" {
+			message = "Пожалуйста, введите слово!"
+		} else if len([]rune(word2)) != constants.WordLength {
+			message = fmt.Sprintf("Слово должно быть длиной %d букв!", constants.WordLength)
+		} else if !persistence.IsWordValid(word2) {
+			message = "Слово не найдено в словаре!"
+		} else {
+			current := word.NewWord(word2)
+			Compare(current, word.NewWord(rightWord))
+			AddAttempt(current)
 
-	fmt.Println("\033[1;35mПриветствую в Wordly! Попробуйте отгадать загаданное слово.\033")
-	for attemptsCount < constants.AttemptsNumber {
-		fmt.Printf("\033[1;34mПопытка %d из %d\n", attemptsCount+1, constants.AttemptsNumber)
-		fmt.Print("\033[1;37mВведите слово: ")
-		input := getUserInput()
-		fmt.Print("\033[H\033[2J")
-
-		if !persistence.IsWordValid(input, g.dictionaryFile) {
-			fmt.Printf("\033[1;31mСлово '%s' не найдено в словаре или не соответствует длине в %d букв!\033\n", input, constants.WordLength)
-			g.printAttempts()
-			continue
+			if current.Equals(rightWord) {
+				message = fmt.Sprintf("Поздравляем, вы отгадали слово: %s", rightWord)
+				ResetGame()
+			} else if len(GetAttempts()) >= constants.AttemptsNumber {
+				message = fmt.Sprintf("Слово не угадано. Загаданное слово было: %s", rightWord)
+				ResetGame()
+			}
 		}
 
-		current := word.NewWord(input)
-		compare(current, word.NewWord(randomWord))
-		g.attempts = append(g.attempts, current)
-		g.printAttempts()
-
-		if current.Equals(word.NewWord(randomWord)) {
-			fmt.Printf("\033[1;32mПоздравляем, вы отгадали слово: %s\033\n", randomWord)
-			break
-		}
-
-		attemptsCount++
-		if attemptsCount == constants.AttemptsNumber {
-			fmt.Printf("\033[1;31mСлово не угадано. Загаданное слово было: %s\033\n", randomWord)
-		}
+		// Отправка HTML формы с сообщением
+		tmpl := template.Must(template.ParseFiles("index.html"))
+		data := PageData{Message: message, Attempts: GetAttempts()}
+		tmpl.Execute(w, data)
 	}
 }
 
-// Выводим попытки
-func (g *Game) printAttempts() {
-	fmt.Println("\033[1;36mВаши попытки:\033")
-	for _, attempt := range g.attempts {
-		attempt.Print()
-	}
-	fmt.Println()
+// GetAttempts возвращает попытки.
+func GetAttempts() []*word.Word {
+	return attempts
 }
 
-// Ввод пользователя
-func getUserInput() string {
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	return strings.TrimSpace(input)
+// добавляет попытку.
+func AddAttempt(attempt *word.Word) {
+	attempts = append(attempts, attempt)
+}
+
+func ResetGame() {
+	// Сбросить переменные
+	attempts = []*word.Word{}
+	rightWord = persistence.GetRandomWord()
 }
 
 // compare сравнивает текущее слово с правильным и изменяет цвет букв.
-func compare(current, correct *word.Word) {
+func Compare(current, correct *word.Word) {
 	usedIndices := make(map[int]bool)
 
 	// Сначала отмечаем зелёные буквы
 	for i, letter := range current.Letters {
 		if letter.Char == correct.Letters[i].Char {
-			current.ChangeColor(i, constants.Green)
+			current.ChangeColor(i, "green")
 			usedIndices[i] = true
 		}
 	}
@@ -90,7 +94,7 @@ func compare(current, correct *word.Word) {
 		if current.Letters[i].Color == constants.Gray {
 			for j, correctLetter := range correct.Letters {
 				if letter.Char == correctLetter.Char && !usedIndices[j] {
-					current.ChangeColor(i, constants.Yellow)
+					current.ChangeColor(i, "yellow")
 					usedIndices[j] = true
 					break
 				}
